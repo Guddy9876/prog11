@@ -9,7 +9,9 @@ variables:
 
 stages:
 
-# -------- BUILD STAGE --------
+# ========================
+# BUILD STAGE
+# ========================
 - stage: Build
   displayName: 'Stage 1 - Build'
   jobs:
@@ -17,21 +19,33 @@ stages:
     displayName: 'Build and Test'
     steps:
 
+    # Validate tools on agent
+    - script: |
+        java -version
+        mvn -version
+      displayName: 'Check Java and Maven Installation'
+
+    # Build project
     - task: Maven@3
-      displayName: 'Compile and Test'
+      displayName: 'Maven Build (Clean Package)'
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
 
+    # Publish artifact only if build succeeds
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Artifact'
+      displayName: 'Publish Build Artifact'
+      condition: succeeded()
       inputs:
         targetPath: '$(System.DefaultWorkingDirectory)/target'
         artifact: 'student-app-jar'
 
-# -------- RELEASE STAGE --------
+
+# ========================
+# RELEASE STAGE
+# ========================
 - stage: Release
   displayName: 'Stage 2 - Release'
   dependsOn: Build
@@ -42,19 +56,24 @@ stages:
     displayName: 'Download and Deploy'
     steps:
 
+    # Download artifact from build stage
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Artifact'
       inputs:
         artifactName: 'student-app-jar'
         targetPath: '$(Pipeline.Workspace)/student-app-jar'
 
+    # Safe deployment simulation
     - script: |
         echo =======================
         echo KSIT DevOps Lab - Release
         echo =======================
+
         echo App Version : $(appVersion)
         echo Deploy Key  : $(deployKey)
+
         echo Listing files:
-        dir $(Pipeline.Workspace)\student-app-jar\
-        echo Deployment Completed
+        ls -R $(Pipeline.Workspace)/student-app-jar
+
+        echo Deployment Completed Successfully
       displayName: 'Simulate Deployment'
