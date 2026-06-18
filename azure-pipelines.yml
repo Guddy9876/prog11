@@ -1,0 +1,60 @@
+trigger:
+- main
+
+pool:
+  name: Default   # Self-hosted agent
+
+variables:
+- group: lab-secrets
+
+stages:
+
+# -------- BUILD STAGE --------
+- stage: Build
+  displayName: 'Stage 1 - Build'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build and Test'
+    steps:
+
+    - task: Maven@3
+      displayName: 'Compile and Test'
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/target'
+        artifact: 'student-app-jar'
+
+# -------- RELEASE STAGE --------
+- stage: Release
+  displayName: 'Stage 2 - Release'
+  dependsOn: Build
+  condition: succeeded()
+
+  jobs:
+  - job: ReleaseJob
+    displayName: 'Download and Deploy'
+    steps:
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download Artifact'
+      inputs:
+        artifactName: 'student-app-jar'
+        targetPath: '$(Pipeline.Workspace)/student-app-jar'
+
+    - script: |
+        echo =======================
+        echo KSIT DevOps Lab - Release
+        echo =======================
+        echo App Version : $(appVersion)
+        echo Deploy Key  : $(deployKey)
+        echo Listing files:
+        dir $(Pipeline.Workspace)\student-app-jar\
+        echo Deployment Completed
+      displayName: 'Simulate Deployment'
