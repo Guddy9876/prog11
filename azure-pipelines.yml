@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: Default   # Self-hosted agent
+  name: ubuntu-latest   # Self-hosted agent
 
 variables:
 - group: SECRETS
