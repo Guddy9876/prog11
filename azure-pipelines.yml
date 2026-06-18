@@ -8,10 +8,6 @@ variables:
 - group: SECRETS
 
 stages:
-
-# ========================
-# BUILD STAGE
-# ========================
 - stage: Build
   displayName: 'Stage 1 - Build'
   jobs:
@@ -43,9 +39,6 @@ stages:
         artifact: 'student-app-jar'
 
 
-# ========================
-# RELEASE STAGE
-# ========================
 - stage: Release
   displayName: 'Stage 2 - Release'
   dependsOn: Build
