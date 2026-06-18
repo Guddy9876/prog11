@@ -15,13 +15,11 @@ stages:
     displayName: 'Build and Test'
     steps:
 
-    # Validate tools on agent
     - script: |
         java -version
         mvn -version
       displayName: 'Check Java and Maven Installation'
 
-    # Build project
     - task: Maven@3
       displayName: 'Maven Build (Clean Package)'
       inputs:
@@ -49,14 +47,14 @@ stages:
     displayName: 'Download and Deploy'
     steps:
 
-    # Download artifact from build stage
+
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Artifact'
       inputs:
         artifactName: 'student-app-jar'
         targetPath: '$(Pipeline.Workspace)/student-app-jar'
 
-    # Safe deployment simulation
+
     - script: |
         echo =======================
         echo KSIT DevOps Lab - Release
